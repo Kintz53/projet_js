@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Ball Characters</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        #dbtitre, #CUtitre {
+            text-align: center;
+            color: #333;
+        }
+
+        #db-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #character-details-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .db_member {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            flex: 1;
+        }
+
+        .db_member h2 {
+            margin-top: 0;
+            color: #ff8c00;
+        }
+
+        .db_member p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .db_member p strong {
+            color: #333;
+        }
+
+        .db_member img {
+            display: block;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .versus {
+            font-size: 2em;
+            color: #ff8c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="dbtitre">Dragon Ball Combat</h1>
+    
+    <div id="db-container">
+        <label for="character-select">Choisissez un personnage :</label>
+        <select id="character-select">
+         
+        </select>
+        <label for="character-select2">Choisissez un autre personnage :</label>
+        <select id="character-select2">
+        
+        </select>
+        <div id="character-details-container">
+            <div id="character-details">
+           
+            </div>
+            <div class="versus">VS</div>
+            <div id="character-details2">
+               
+            </div>
+            <div id="resultat">
+               
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = 'https://dragonball-api.com/api/characters?limit=100';
+
+        async function dbfonction() {
+            try {
+                const response = await fetch(apiUrl);
+                const result = await response.json();
+
+                const dbs = result.items;
+                const select = document.getElementById('character-select');
+                const select2 = document.getElementById('character-select2');
+                const detailsContainer = document.getElementById('character-details');
+                const detailsContainer2 = document.getElementById('character-details2');
+                const resultatContainer = document.getElementById('resultat');
+                let pu1=0;
+                let pu2=0;
+                let name1= ""
+                let name2= ""
+                function convertion(nombre){
+                    
+                    const numberMap = {
+                'million': 1e6,
+                'billion': 1e9,
+                'trillion': 1e12,
+                'quadrillion': 1e15,
+                'quintillion': 1e18,
+                'sextillion': 1e21,
+                'septillion': 1e24,
+                'octillion': 1e27,
+                'nonillion': 1e30,
+                'decillion': 1e33
+                };
+                if (typeof(nombre)=='string'){
+                    console.log(typeof(nombre))
+                    const [nombre_val,val]=nombre.split(" ");
+                    if (val && numberMap[val.toLowerCase()]) {
+                       
+                        return parseFloat(nombre_val) * numberMap[val.toLowerCase()]
+                        
+                    }
+                    else{
+                        return parseFloat(nombre_val)
+                    }
+                }
+                }
+                function updateResult() {
+                    if (convertion(pu1) > convertion(pu2)) {
+                        resultatContainer.innerHTML = `
+                            <div class="db_member">
+                                <p><strong>Gagnant:</strong> ${name1} avec un max KI de ${pu1}</p>
+                            </div>
+                        `;
+                    } else if (convertion(pu2) > convertion(pu1)) {
+                        resultatContainer.innerHTML = `
+                            <div class="db_member">
+                                <p><strong>Gagnant:</strong> ${name2} avec un max KI de ${pu2}</p>
+                            </div>
+                        `;
+                    } else {
+                        console.log(convertion(pu2))
+                        console.log(convertion(pu1))
+                        console.log(typeof(pu1))
+                        resultatContainer.innerHTML = `
+                            <div class="db_member">
+                                <p><strong>Égalité:</strong> ${name1} et ${name2} ont le même max KI de ${pu1}</p>
+                            </div>
+                        `;
+                    }
+                }
+                dbs.forEach(db_member => {
+                    const option = document.createElement('option');
+                    option.value = db_member.id;
+                    option.textContent = db_member.name;
+                    select.appendChild(option);
+                    select2.appendChild(option.cloneNode(true));
+                });
+
+                
+                select.addEventListener('change', (event) => {
+                    const selectedCharacterId = event.target.value;
+                    const selectedCharacter = dbs.find(character => character.id === parseInt(selectedCharacterId));
+                    if (selectedCharacter) {
+                        detailsContainer.innerHTML = `
+                            <div class="db_member">
+                                <h2>${selectedCharacter.id}</h2>
+                                <p><strong>Nom:</strong> ${selectedCharacter.name}</p>
+                                <p><strong>Race:</strong> ${selectedCharacter.race}</p>
+                                <p><strong>max KI:</strong> ${selectedCharacter.maxKi}</p>
+                                <img src="${selectedCharacter.image}" alt="${selectedCharacter.name}" width="200">
+                            </div>
+                        `;
+                        pu1=selectedCharacter.maxKi;
+                        console.log(pu1)
+                        name1=selectedCharacter.name;
+                        updateResult();
+                    }
+                });
+
+                select2.addEventListener('change', (event) => {
+                    const selectedCharacterId = event.target.value;
+                    const selectedCharacter = dbs.find(character => character.id === parseInt(selectedCharacterId));
+                    if (selectedCharacter) {
+                        detailsContainer2.innerHTML = `
+                            <div class="db_member">
+                                <h2>${selectedCharacter.id}</h2>
+                                <p><strong>Nom:</strong> ${selectedCharacter.name}</p>
+                                <p><strong>Race:</strong> ${selectedCharacter.race}</p>
+                                <p><strong>max KI:</strong> ${selectedCharacter.maxKi}</p>
+                                <img src="${selectedCharacter.image}" alt="${selectedCharacter.name}" width="200">
+                            </div>
+                        `;
+                        pu2=selectedCharacter.maxKi;
+                        name2=selectedCharacter.name;
+                        updateResult();
+                    }
+                });
+
+            
+                if (dbs.length > 1) {
+                    const firstCharacter = dbs[0];
+                    const secondCharacter = dbs[1];
+                    detailsContainer.innerHTML = `
+                        <div class="db_member">
+                            <h2>${firstCharacter.id}</h2>
+                            <p><strong>Nom:</strong> ${firstCharacter.name}</p>
+                            <p><strong>Race:</strong> ${firstCharacter.race}</p>
+                            <p><strong>max KI:</strong> ${firstCharacter.maxKi}</p>
+                            <img src="${firstCharacter.image}" alt="${firstCharacter.name}" width="200">
+                        </div>
+                    `;
+                    detailsContainer2.innerHTML = `
+                        <div class="db_member">
+                            <h2>${secondCharacter.id}</h2>
+                            <p><strong>Nom:</strong> ${secondCharacter.name}</p>
+                            <p><strong>Race:</strong> ${secondCharacter.race}</p>
+                            <p><strong>max KI:</strong> ${secondCharacter.maxKi}</p>
+                            <img src="${secondCharacter.image}" alt="${secondCharacter.name}" width="200">
+                        </div>
+                    `;
+                }
+                   
+                    
+                updateResult();
+            } catch (error) {
+                console.error('Erreur lors de la récupération des personnages Dragon Ball:', error);
+            }
+        }
+
+        dbfonction();
+    </script>
+</body>
+</html>
